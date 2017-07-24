@@ -1,0 +1,20 @@
+$freeDiskSpaceThreshold = 5GB
+
+Try {
+
+Get-WmiObject win32_LogicalDisk -ErrorAction
+Stop  | ? { ($_.DriveType -eq 3)
+-and ($_.FreeSpace -ne $null) -and ($_.DeviceID -ne "P:")} |  % {
+CheckDriveCapacity @{Name =$_.DeviceId; FreeSpace=$_.FreeSpace} }
+
+} Catch
+[System.Runtime.InteropServices.COMException] {
+
+Get-WmiObject win32_Volume | ? { ($_.DriveType -eq 3) -and ($_.FreeSpace -ne $null) -and ($_.DriveLetter -ne $null) -and ($_.DriveLetter -ne "P:")} | % { CheckDriveCapacity
+@{Name =$_.DriveLetter; FreeSpace=$_.FreeSpace} }
+
+Get-WmiObject Win32_MappedLogicalDisk | ? { ($_.FreeSpace -ne $null)
+-and ($_.DeviceId -ne $null) -and ($_.DeviceId -ne "P:")} | % { CheckDriveCapacity @{Name =$_.DeviceId; FreeSpace=$_.FreeSpace}
+}    
+
+}
